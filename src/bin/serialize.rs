@@ -8,11 +8,22 @@ fn main() {
         println!("{}", "Usage: serialize [FILE NAME]");
         return;
     }
-    let f = BufReader::new(fs::File::open(&args[1]).unwrap());
+    let result = serialize(&args[1]);
+    println!("{}", result);
+}
+
+fn serialize(path: &str) -> String {
+    let f = BufReader::new(fs::File::open(path).unwrap());
     let mut vec: Vec<String> = Vec::new();
     for line in f.lines() {
         let s = line.unwrap();
         vec.push(s.trim().to_string());
     }
-    println!("{}", vec.join("").replace("\n", ""));
+    vec.join("").replace("\n", "")
+}
+
+#[test]
+fn serialize_test() {
+    let result = serialize("./test_files/serialize_test.xml");
+    assert_eq!("<test><item></item></test>", result);
 }
