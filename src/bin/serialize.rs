@@ -1,14 +1,22 @@
 use std::env;
 use std::fs;
 use std::io::{BufReader, BufRead};
+use std::path::Path;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    if args.len() < 2 {
-        println!("{}", "Usage: serialize [FILE NAME]");
-        return;
+    let file_name = if args.len() < 2 {
+        "serialize.txt"
+    } else {
+        &args[1]
+    };
+    let path = Path::new(file_name);
+    if !path.exists() {
+        println!("Usage serialize [FILE NAME] or setting ./serialize.txt");
+        return
     }
-    let result = serialize(&args[1]);
+
+    let result = serialize(file_name);
     println!("{}", result);
 }
 
