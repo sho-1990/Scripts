@@ -5,3 +5,6 @@ authors = ["Sho Sato <shsato.t.t.n@gmail.com>"]
 
 [dependencies]
 chrono = "*"
+serde = "*"
+serde_derive = "*"
+toml = "*"

@@ -4,3 +4,4 @@ Cargo.lock
 
 src/bin/mail_zyochu.rs
 src/bin/prepare.rs
+src/bin/c_temp_1.rs
