@@ -74,7 +74,13 @@ fn open_process(project_name: &str) {
         },
         Err(_) => {}
     };
+
+    let mut latest_file = latest_file(project_name, &config).unwrap();
     let mut f = File::create(&file_name).unwrap();
+    let mut latest = String::new();
+    latest_file.read_to_string(&mut latest).unwrap();
+    f.write_all(latest.as_bytes()).unwrap();
+
     println!("{} create!", &file_name);
     open_editor(&file_name, &config.gizi.editor);
 }
@@ -103,4 +109,35 @@ fn print_usage() {
 
 fn open_editor(file_name: &str, editor: &str) {
     Command::new(editor).arg(file_name).output().expect("Please set editor name");
+}
+
+fn latest_file(project_name: &str, config: &Config) -> std::io::Result<File> {
+    let dir_name = format!("{}/{}", config.gizi.projects, project_name);
+    let paths = fs::read_dir(&dir_name).unwrap();
+    let mut files: Vec<String> = vec![];
+    for path in paths {
+        let name = path.unwrap().path().display().to_string();
+        let names: Vec<&str> = name.split("/").collect();
+        let file_name = names.last().unwrap().to_string();
+        let file_len = names.last().unwrap().len();
+        if &file_name[(file_len - 2)..file_len] != config.gizi.extension {
+            println!("Ignore name: {}", file_name);
+            continue;
+        }
+        let file_name = file_name[..(file_len - 3)].to_string();
+
+        files.push(file_name);
+    }
+    if files.len() > 2 {
+        files.sort_by(|a, b| {
+            let a_v: Vec<&str> = a.split("-").collect();
+            let b_v: Vec<&str> = b.split("-").collect();
+            let a_i: i32 = a_v.concat().parse().unwrap();
+            let b_i: i32 = b_v.concat().parse().unwrap();
+            a_i.cmp(&b_i)
+        });
+    }
+    let file_name = format!("{}/{}.{}", &dir_name, files.last().unwrap(), config.gizi.extension);
+    println!("Selected Name: {}", file_name);
+    File::open(file_name)
 }
