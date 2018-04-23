@@ -7,7 +7,6 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::option::Option;
-use std::path::Path;
 use std::process::Command;
 
 
@@ -67,7 +66,7 @@ fn new_process(project_name: &str) {
         Err(_) => {}
     }
     let dir_name = format!("{}/{}", config.gizi.projects, project_name);
-    let mut d = fs::create_dir(&dir_name);
+    let d = fs::create_dir(&dir_name);
     match d {
         Ok(_) => { println!("{} {}", &dir_name, "create!") }
         Err(why) => { println!("{}", why.to_string()) }
