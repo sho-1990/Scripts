@@ -1,30 +1,43 @@
 extern crate toml;
-
-#[macro_use] extern crate serde_derive;
 extern crate chrono;
 
 use chrono::Local;
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 
 
 #[derive(Debug)]
-#[derive(Deserialize)]
 struct Config {
     gizi: Gizi
 }
 
+impl Config {
+    pub fn new() -> Config {
+        Config {
+            gizi: Gizi::new()
+        }
+    }
+}
+
 #[derive(Debug)]
-#[derive(Deserialize)]
 struct Gizi {
     projects: String,
     editor: String,
     extension: String
+}
+
+impl Gizi {
+    pub fn new() -> Gizi {
+        Gizi {
+            projects: "".to_string(),
+            editor: "macdown".to_string(),
+            extension: "md".to_string()
+        }
+    }
 }
 
 fn main() {
@@ -96,11 +109,7 @@ fn projects_process() {
 }
 
 fn read_config() -> Config {
-    let path = Path::new("./Config.toml");
-    let mut f = File::open(&path).expect("Please set config file");
-    let mut s = String::new();
-    f.read_to_string(&mut s).unwrap();
-    toml::from_str(&s).unwrap()
+    Config::new()
 }
 
 fn print_usage() {
