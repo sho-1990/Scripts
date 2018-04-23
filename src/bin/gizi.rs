@@ -40,7 +40,7 @@ fn main() {
     }
     if args.len() < 3 {
         open_process(&args[1]);
-    } else if args.len() > 2 {
+    } else if args.len() > 2 && &args[1] == "new" {
         new_process(&args[2]);
     } else {
         print_usage();
