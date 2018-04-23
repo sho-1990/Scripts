@@ -9,6 +9,7 @@ use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
+use std::option::Option;
 use std::path::Path;
 use std::process::Command;
 
@@ -75,7 +76,16 @@ fn open_process(project_name: &str) {
         Err(_) => {}
     };
 
-    let mut latest_file = latest_file(project_name, &config).unwrap();
+    let mut latest_file = match latest_file(project_name, &config) {
+        None => {
+            File::create(&file_name).unwrap();
+            open_editor(&file_name, &config.gizi.editor);
+            return
+        },
+        Some(l) => {
+            l.unwrap()
+        }
+    };
     let mut f = File::create(&file_name).unwrap();
     let mut latest = String::new();
     latest_file.read_to_string(&mut latest).unwrap();
@@ -111,7 +121,7 @@ fn open_editor(file_name: &str, editor: &str) {
     Command::new(editor).arg(file_name).output().expect("Please set editor name");
 }
 
-fn latest_file(project_name: &str, config: &Config) -> std::io::Result<File> {
+fn latest_file(project_name: &str, config: &Config) -> Option<std::io::Result<File>> {
     let dir_name = format!("{}/{}", config.gizi.projects, project_name);
     let paths = fs::read_dir(&dir_name).unwrap();
     let mut files: Vec<String> = vec![];
@@ -136,8 +146,10 @@ fn latest_file(project_name: &str, config: &Config) -> std::io::Result<File> {
             let b_i: i32 = b_v.concat().parse().unwrap();
             a_i.cmp(&b_i)
         });
+    } else if files.len() == 0 {
+        return None
     }
     let file_name = format!("{}/{}.{}", &dir_name, files.last().unwrap(), config.gizi.extension);
     println!("Selected Name: {}", file_name);
-    File::open(file_name)
+    Some(File::open(file_name))
 }
