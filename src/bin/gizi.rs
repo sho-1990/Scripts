@@ -38,6 +38,54 @@ impl Gizi {
             extension: "md".to_string()
         }
     }
+
+    pub fn view(&self, project_name: &str) {
+        let latest_file_path = match self.latest_file_path(project_name) {
+            None => {
+                panic!("{} {}", project_name, "no history");
+            },
+            Some(l) => {
+                l
+            }
+        };
+        self.open_editor(&latest_file_path);
+    }
+
+    fn open_editor(&self, file_name: &str) {
+        Command::new(&self.editor).arg(file_name).output().expect("Please set editor name");
+    }
+
+    fn latest_file_path(&self, project_name: &str) -> Option<String> {
+        let dir_name = format!("{}/{}", self.projects, project_name);
+        let paths = fs::read_dir(&dir_name).unwrap();
+        let mut files: Vec<String> = vec![];
+        for path in paths {
+            let name = path.unwrap().path().display().to_string();
+            let names: Vec<&str> = name.split("/").collect();
+            let file_name = names.last().unwrap().to_string();
+            let file_len = names.last().unwrap().len();
+            if &file_name[(file_len - 2)..file_len] != self.extension {
+                println!("Ignore name: {}", file_name);
+                continue;
+            }
+            let file_name = file_name[..(file_len - 3)].to_string();
+
+            files.push(file_name);
+        }
+        if files.len() > 2 {
+            files.sort_by(|a, b| {
+                let a_v: Vec<&str> = a.split("-").collect();
+                let b_v: Vec<&str> = b.split("-").collect();
+                let a_i: i32 = a_v.concat().parse().unwrap();
+                let b_i: i32 = b_v.concat().parse().unwrap();
+                a_i.cmp(&b_i)
+            });
+        } else if files.len() == 0 {
+            return None
+        }
+        let file_name = format!("{}/{}.{}", &dir_name, files.last().unwrap(), self.extension);
+        Some(file_name)
+    }
 }
 
 fn main() {
@@ -46,14 +94,19 @@ fn main() {
        print_usage();
        return;
     }
+    let gizi = Gizi::new();
     if &args[1] == "projects" {
         projects_process();
         return
     }
     if args.len() < 3 {
         open_process(&args[1]);
-    } else if args.len() > 2 && &args[1] == "new" {
-        new_process(&args[2]);
+    } else if args.len() > 2{
+        match &*args[1] {
+            "new" => new_process(&args[2]),
+            "-v"  => gizi.view(&args[2]),
+            _     => println!("none")
+        };
     } else {
         print_usage();
     }
@@ -125,6 +178,7 @@ fn print_usage() {
     eprintln!("Usage:\n gizi [project name]\n gizi new [project_name]\n gizi projects");
 }
 
+#[deprecated]
 fn open_editor(file_name: &str, editor: &str) {
     Command::new(editor).arg(file_name).output().expect("Please set editor name");
 }
